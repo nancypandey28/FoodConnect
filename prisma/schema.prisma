@@ -1,0 +1,102 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id       Int    @id @default(autoincrement())
+  fullName String
+  username String @unique
+  email    String @unique
+  password String
+
+  // donor or receiver
+  role String
+
+  phone   String?
+  address String?
+  city    String?
+
+  createdAt DateTime @default(now())
+
+  // Relations
+  listings         FoodListing[]
+  orders           Order[]
+  sentMessages     Message[]      @relation("SentMessages")
+  receivedMessages Message[]      @relation("ReceivedMessages")
+  notifications    Notification[]
+}
+
+model FoodListing {
+  id Int @id @default(autoincrement())
+
+  title       String
+  description String?
+
+  foodType String
+  quantity Int
+
+  // Keep for now. Set to 0 for free food.
+  price Float @default(0)
+
+  imageUrl String?
+
+  // pickup or delivery
+  pickupType String @default("pickup")
+
+  expiryDate DateTime
+
+  // active, claimed, expired, completed
+  status String @default("active")
+
+  createdAt DateTime @default(now())
+
+  donorId Int
+  donor   User @relation(fields: [donorId], references: [id])
+
+  orders Order[]
+}
+
+model Order {
+  id Int @id @default(autoincrement())
+
+  // pending, accepted, rejected, completed
+  status String @default("pending")
+
+  createdAt DateTime @default(now())
+
+  receiverId Int
+  receiver   User @relation(fields: [receiverId], references: [id])
+
+  listingId Int
+  listing   FoodListing @relation(fields: [listingId], references: [id])
+}
+
+model Message {
+  id      Int    @id @default(autoincrement())
+  content String
+
+  createdAt DateTime @default(now())
+
+  senderId Int
+  sender   User @relation("SentMessages", fields: [senderId], references: [id])
+
+  receiverId Int
+  receiver   User @relation("ReceivedMessages", fields: [receiverId], references: [id])
+}
+
+model Notification {
+  id Int @id @default(autoincrement())
+
+  message String
+  isRead  Boolean @default(false)
+
+  createdAt DateTime @default(now())
+
+  userId Int
+  user   User @relation(fields: [userId], references: [id])
+}
