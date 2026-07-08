@@ -1,14 +1,16 @@
-const roleMiddleware = (req, res, next) => {
-    // Allow only donors
-    if (req.user.role !== "donor") {
-        return res.status(403).json({
-            success: false,
-            message: "Access denied. Only donors can perform this action."
-        });
-    }
+const roleMiddleware = (...allowedRoles) => {
 
-    // User is a donor
-    next();
+    return (req, res, next) => {
+
+        if (!allowedRoles.includes(req.user.role)) {
+            return res.status(403).json({
+                success: false,
+                message: "Access denied."
+            });
+        }
+
+        next();
+    };
 
 };
 

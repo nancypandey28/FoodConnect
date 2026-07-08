@@ -3,6 +3,7 @@ const cors = require('cors');
 const dotenv = require('dotenv');
 const authRoutes = require("./routes/authRoutes");
 const foodRoutes = require("./routes/foodRoutes");
+const orderRoutes = require("./routes/orderRoutes");
 
 dotenv.config();          // Load environment variables from .env file
 
@@ -15,6 +16,7 @@ app.use(cors());                 // Allows frontend to talk to backend
 app.use(express.json());        //middleware //Allows us to read JSON data from requests
 app.use("/api/auth", authRoutes);
 app.use("/api/food-listings", foodRoutes);
+app.use("/api/orders", orderRoutes);
 
 app.get('/', (req, res) => {
     res.json({

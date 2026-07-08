@@ -97,8 +97,126 @@ const getFoodListingById = async (req, res) => {
     }
 };
 
+const updateFoodListing = async (req, res) => {
+    try {
+
+        const { id } = req.params;
+
+        const {
+            title,
+            description,
+            foodType,
+            quantity,
+            price,
+            imageUrl,
+            pickupType,
+            expiryDate
+        } = req.body;
+
+        // Check if listing exists
+        const foodListing = await prisma.foodListing.findUnique({
+            where: {
+                id: Number(id)
+            }
+        });
+
+        if (!foodListing) {
+            return res.status(404).json({
+                success: false,
+                message: "Food listing not found."
+            });
+        }
+
+        // Ownership Check
+        if (foodListing.donorId !== req.user.id) {
+            return res.status(403).json({
+                success: false,
+                message: "You are not allowed to update this listing."
+            });
+        }
+
+        // Update Listing
+        const updatedListing = await prisma.foodListing.update({
+            where: {
+                id: Number(id)
+            },
+            data: {
+                title,
+                description,
+                foodType,
+                quantity,
+                price,
+                imageUrl,
+                pickupType,
+                expiryDate: new Date(expiryDate)
+            }
+        });
+
+        return res.status(200).json({
+            success: true,
+            message: "Food listing updated successfully.",
+            updatedListing
+        });
+
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+};
+
+const deleteFoodListing = async (req, res) => {
+    try {
+
+        const { id } = req.params;
+
+        // Check if listing exists
+        const foodListing = await prisma.foodListing.findUnique({
+            where: {
+                id: Number(id)
+            }
+        });
+
+        if (!foodListing) {
+            return res.status(404).json({
+                success: false,
+                message: "Food listing not found."
+            });
+        }
+
+        // Ownership Check
+        if (foodListing.donorId !== req.user.id) {
+            return res.status(403).json({
+                success: false,
+                message: "You are not allowed to delete this listing."
+            });
+        }
+
+        // Delete Listing
+        await prisma.foodListing.delete({
+            where: {
+                id: Number(id)
+            }
+        });
+
+        return res.status(200).json({
+            success: true,
+            message: "Food listing deleted successfully."
+        });
+
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+};
+
 module.exports = {
     createFoodListing,
     getAllFoodListings,
-    getFoodListingById
+    getFoodListingById,
+    updateFoodListing,
+    deleteFoodListing
 };
